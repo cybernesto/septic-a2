@@ -1,0 +1,185 @@
+; @com.wudsn.ide.asm.hardware=APPLE2
+
+;
+; Apple II Festival France 2018 Demo
+;
+
+
+; Code, by T.M.R/Cosine
+; Electric Duet code by Paul Lutus
+; Original music by Utz, Irrlich Project
+
+; Built around the Septic Demo by T.M.R/Cosine and updated with an
+; Electric Duet Player by cybernesto
+
+
+; This source code is formatted for the ACME cross assembler from
+; http://sourceforge.net/projects/acme-crossass/
+
+
+; Standard A2 register declarations
+		!src "includes/registers.a"
+
+; Beeper sound labels
+be_pattn_cnt	= $1F
+
+; Demo labels
+text_tmr	= $03f3
+
+text_bmp	= $2000
+
+
+; Yank in binary data
+		* = $2000
+		!binary "data/PI.A2FF18.dump"
+
+font_data	!binary "data/charset.raw"
+
+
+; Set origin point (must be the same as the last four bytes of !to)
+		* = $0a00
+
+; Code entry point
+entry
+		jsr reset
+
+; Enable bitmapped graphics mode
+		lda #$00
+		sta txtclr
+		sta hires
+		jsr ED_M
+		
+; The main loop of the demo
+main_loop
+; Check to see if the pattern counter has gone up...
+		lda be_pattn_cnt
+		cmp text_tmr
+		bne update
+		rts
+
+; ...and if so, update the message line
+update	sta text_tmr
+		ldx #$00
+mread		lda scroll_text
+		bne okay
+		jsr reset
+		jmp mread
+okay		sta $0400,x
+		inc mread+$01
+		bne *+$05
+		inc mread+$02
+		inx
+		cpx #$28
+		bne mread
+
+; Write the new text to bitmap
+		ldx #$00
+bmp_draw	ldy $0400,x
+		lda font_data+$000,y
+		sta text_bmp+$0000,x
+		lda font_data+$040,y
+		sta text_bmp+$0400,x
+		lda font_data+$080,y
+		sta text_bmp+$0800,x
+		lda font_data+$0c0,y
+		sta text_bmp+$0c00,x
+		lda font_data+$100,y
+		sta text_bmp+$1000,x
+		lda font_data+$140,y
+		sta text_bmp+$1400,x
+		lda font_data+$180,y
+		sta text_bmp+$1800,x
+		lda font_data+$1c0,y
+		sta text_bmp+$1c00,x
+
+		lda font_data+$200,y
+		sta text_bmp+$0080,x
+		lda font_data+$240,y
+		sta text_bmp+$0480,x
+		lda font_data+$280,y
+		sta text_bmp+$0880,x
+		lda font_data+$2c0,y
+		sta text_bmp+$0c80,x
+		lda font_data+$300,y
+		sta text_bmp+$1080,x
+		lda font_data+$340,y
+		sta text_bmp+$1480,x
+		lda font_data+$380,y
+		sta text_bmp+$1880,x
+		lda font_data+$3c0,y
+		sta text_bmp+$1c80,x
+		inx
+		cpx #$28
+		bne bmp_draw
+
+		jmp main_loop
+
+
+; Reset the "scrolling" message
+reset		lda #<scroll_text
+		sta mread+$01
+		lda #>scroll_text
+		sta mread+$02
+		rts
+
+
+; Include the music driver and tune data
+		!src "includes/music.a"
+
+
+; The "scrolling" message text
+scroll_text	
+		!scr "     Apple II Festival France 2018      "
+		!scr "   Greetings Apple II fans worldwide!   "
+		!scr "For the fourth time Le Maska hosts this "
+		!scr "awesome event under the cool shadows of "
+		!scr "the plane trees in the french south-west"
+		!scr " gathering fans and experts from around "
+		!scr " Europe. Good wine, delicious meals and "
+		!scr "  of course many Apples made this Event "
+		!scr "unforgettable, setting the benchmark for"
+		!scr "      the many editions to follow.      "
+		!scr "                                        "
+
+		!scr "Special thanks to Brutal Deluxe and the "
+		!scr "guest appearance of FTA this year, also "
+		!scr "thanks to Godfather for his contagious  "
+		!scr "sympathy and Jansky for his insights on "
+		!scr " the secret operations of the F.U.C.K.  "
+		!scr "                                        "
+
+		!scr " Infinite thanks go to our host Luc and "
+		!scr "   his team, David and Suzanne for the  "
+		!scr "excellent service and being the enablers"
+		!scr "  of the many talks and long nights of  "
+		!scr "           joyful celebration.          "
+		!scr "                                        "
+
+		!scr "Greetings to Pierre B., Philippe, Serge,"
+		!scr " Christian, Fabien, Yannick, Guillaume, "
+		!scr "Nicolas, Mario, Stephane P., Olivier H. "
+		!scr " Olivier Z., Sylvain, Pierre D., Didier "
+		!scr "  Gilbert, Jean-Philippe, Franck, Koen, "
+		!scr "  Karim, Francois, Patrice, Maurice...  "
+		!scr "            and a 3am call to           "
+		!scr "Stephane B, Agnes, Benoit, Jean-Francois"
+		!scr "              and Antoine...            "
+		!scr "     Hey guys, turn the volume down!    "
+		!scr "    I need to get some sleep now  :-)   "
+		!scr "                                        "
+
+		!scr "code ............................. t.m.r"
+		!scr "tone playing routine ........ Paul Lutus"
+		!scr "two voice tune ........ Irrlicht Project"
+		!scr "festival logo .................... Rocco"
+		!scr "hgr version and code theft .. cybernesto"
+		!scr "                                        "
+
+		!scr "don't forget to visit the festival site "
+		!scr "  https://www.apple2festivalfrance.fr   "
+		!scr "                                        "
+
+		!scr "-=-       Apple II fort et vert      -=-"
+		!scr "                                        "
+
+		!byte $00		; end of text
