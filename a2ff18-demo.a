@@ -21,7 +21,7 @@
 		!src "includes/registers.a"
 
 ; Beeper sound labels
-be_pattn_cnt	= $1F
+be_pattn_cnt	= $1E
 
 ; Demo labels
 text_tmr	= $03f3
@@ -47,18 +47,23 @@ entry
 		lda #$00
 		sta txtclr
 		sta hires
+		sta mixclr
+		sta text_tmr
 		jsr ED_M
 		
 ; The main loop of the demo
 main_loop
 ; Check to see if the pattern counter has gone up...
-		lda be_pattn_cnt
-		cmp text_tmr
-		bne update
+		inc text_tmr
+		lda text_tmr
+		cmp #$1F
+		bcs update
 		rts
 
 ; ...and if so, update the message line
-update	sta text_tmr
+update	
+		lda #$00
+		sta text_tmr
 		ldx #$00
 mread		lda scroll_text
 		bne okay
@@ -145,7 +150,8 @@ scroll_text
 		!scr "guest appearance of FTA this year, also "
 		!scr "thanks to Godfather for his contagious  "
 		!scr "sympathy and Jansky for his insights on "
-		!scr " the secret operations of the F.U.C.K.  "
+		!scr "      the secret operations of the      "
+		!scr "      French United Cracker's Klan!     "
 		!scr "                                        "
 
 		!scr " Infinite thanks go to our host Luc and "
@@ -170,7 +176,7 @@ scroll_text
 
 		!scr "code ............................. t.m.r"
 		!scr "tone playing routine ........ Paul Lutus"
-		!scr "two voice tune ........ Irrlicht Project"
+		!scr "two voice tune ............. J. M. Jarre"
 		!scr "festival logo .................... Rocco"
 		!scr "hgr version and code theft .. cybernesto"
 		!scr "                                        "
